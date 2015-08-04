@@ -1,0 +1,169 @@
+---
+title: "htsqc"
+author: ""
+date: "07/27/2015"
+output: 
+  html_document:
+    css: TOC_forRmd.css
+    theme: cerulean
+    toc: yes
+---
+
+<!--
+This document was created by the htsqc pipeline. It contains several benchmark values on a specific squencing project at MPI-IE. The plots are intended to help evaluating the quality on a subsample of the overall reads.
+The FASTQ files from a project were mapped with the HISAT aligner to available reference genomes. The benchmark values were aquired by using samtools view on the resulting BAM files.
+-->
+
+```{r, echo=FALSE, include=TRUE} 
+library(knitr)
+library(reshape2)
+library(ggplot2)
+
+df = read.table(tsvfile)
+best_genome = df[with(df, order(-mapped_perc)), ][1,]$genome
+paired = df$lib_type[1]
+```
+
+Project: `r sub("Project_", "", df$project[1])`
+==========================
+
+Downsampled reads: `r sprintf("%.1f M", df$total[1]/1000000)`
+
+Project samples: `r as.numeric(dim(df)[1]) / length(unique(df$genome))`
+
+Library type: `r paired`
+
+Best mapping to: `r best_genome`
+
+---
+
+## Mapping rate (multiple genomes)
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+pd = df
+ggplot(pd, aes(factor(genome), df$mapped_perc, fill = factor(genome))) +
+  geom_boxplot() +
+#   geom_point() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("Mapped reads [%]") +
+  theme(legend.position="none")
+```
+
+---
+
+## Mapping rate (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+pd = df[df$genome==best_genome,][c("sample", "mapped", "mapped_perc", "con_paired", "con_paired_perc")]
+if ( paired == "PE" ) {
+  pd$delta_mapped_perc = pd$mapped_perc - pd$con_paired_perc
+  fig_median = median(pd$mapped_perc)
+  pd2 = data.frame(sample=pd$sample, delta_mapped_perc=(pd$mapped_perc - pd$con_paired_perc), con_paired_perc=pd$con_paired_perc )
+  pd2 = melt(pd2, id.vars=c("sample"))
+  
+  ggplot(pd2, aes(x=factor(sample), y=value, fill=variable, order=-as.numeric(variable))) +
+    geom_bar(stat="identity") +
+    theme_bw(base_size = 14) +
+    scale_fill_manual(name="", values=c("#81BEF7", "#045FB4"), labels = c("Mapped reads\n(MAPQ>=5)", "Conc. pairs")) +
+    scale_x_discrete("Samples") +
+    scale_y_continuous("Mapped reads [%]") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    geom_hline(aes(yintercept=fig_median,col="red")) +
+    theme(legend.position="bottom")
+  
+} else {
+pd = df[df$genome==best_genome,][c("sample", "mapped", "mapped_perc")]
+ggplot(pd, aes(factor(sample), mapped_perc)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Mapped reads [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(mapped_perc)),col="red")
+}
+```
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+if ( paired == "PE" ) {
+  kable(pd[1:5], row.names=F, col.names=c("Sample", "Mapped", "%", "Conc. paired", "%"))
+} else {
+kable(pd, row.names=F, col.names=c("Sample", "Mapped", "%"))
+}
+```
+
+---
+
+## Spliced reads (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+pd = df[df$genome==best_genome,][c("sample", "spliced", "spliced_perc")]
+ggplot(pd, aes(factor(sample), spliced_perc)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Spliced reads [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(spliced_perc)),col="red")
+
+kable(pd, row.names=F, col.names=c("Sample", "Spliced", "%"))
+```
+
+---
+
+## Long mappings (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+pd = df[df$genome==best_genome,][c("sample", "tlen_1000", "tlen_1000_perc")]
+ggplot(pd, aes(factor(sample), tlen_1000_perc)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("TLEN >= 1000 bp [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(tlen_1000_perc)),col="red")
+
+kable(pd, row.names=F, col.names=c("Sample", "TLEN>=1000", "%"))
+```
+
+---
+
+## Median mapping length (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE, results='asis', fig.width=10, fig.height=8}
+pd = df[df$genome==best_genome,][c("sample", "tlen_median")]
+ggplot(pd, aes(factor(sample), tlen_median)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Median TLEN [bp]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(tlen_median)),col="red")
+
+kable(pd, row.names=F, col.names=c("Sample", "Length (median)"))
+```
+
+---
+
+## Data table
+```{r, echo=FALSE, include=TRUE, results = 'asis'} 
+kable(df)
+```
+
+--- 
+
+MPI-IE Bioinformatics `r format(Sys.Date(), format="%Y")`
+
+<!--
+cwd: `r getwd()`
+-->
+

@@ -1,0 +1,197 @@
+---
+title: "htsqc"
+author: ""
+date: "07/27/2015"
+output: 
+  html_document:
+    css: TOC_forRmd.css
+    theme: cerulean
+    toc: yes
+---
+
+<!--
+This document was created by the htsqc pipeline. It contains several benchmark values on a specific squencing project at MPI-IE. The plots are intended to help evaluating the quality on a subsample of the overall reads.
+The FASTQ files from a project were mapped with the HISAT aligner to available reference genomes. The benchmark values were aquired by using samtools view on the resulting BAM files.
+-->
+
+```{r, echo=FALSE, include=TRUE} 
+library(ggplot2)
+library(knitr)
+
+## For debug only!
+args = c("/data/processing/kilpert/test/htsqc/output/Ausma/project_report/Report.tsv")
+infile = args[1]
+
+df = read.table(infile)
+##head(df)
+best_genome = df[with(df, order(-mapq0)), ][1,]$genome
+```
+
+Project: `r df$project[1]`
+==========================
+
+Number of samples: `r as.numeric(dim(df)[1]) / length(unique(df$genome))`
+
+Number of reads: `r df$total[1]`
+
+Library type: `r df$lib_type[1]`
+
+Best mapping to: `r best_genome`
+
+---
+<!--
+## Mapping rate
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df, aes(factor(genome), mapq0, fill = factor(genome))) +
+  geom_boxplot() +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("Mapped reads [%]")
+```
+
+## Mapping rate (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df[df$genome==best_genome,], aes(factor(sample), mapq0)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Mapped reads [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(mapq0)),col="red")
+```
+-->
+---
+
+<!--
+## Spliced reads
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df, aes(factor(genome), spliced_perc, fill = factor(genome))) +
+  geom_boxplot() +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("Spliced reads [%]")
+```
+
+
+## Spliced reads (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df[df$genome==best_genome,], aes(factor(sample), spliced_perc)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Spliced reads [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(spliced_perc)),col="red")
+```
+-->
+---
+
+<!--
+## Long mappings
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df, aes(factor(genome), tlen_gt_1000_perc, fill = factor(genome))) +
+  geom_boxplot() +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("TLEN > 1000 bp [%]")
+```
+
+
+## Long mappings (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df[df$genome==best_genome,], aes(factor(sample), tlen_gt_1000_perc)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("TLEN > 1000 bp [%]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(tlen_gt_1000_perc)),col="red")
+```
+-->
+---
+
+<!--
+## Median mapping length
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df, aes(factor(genome), length_median, fill = factor(genome))) +
+  geom_boxplot() +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("Median TLEN [bp]")
+```
+
+
+## Median mapping length (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df[df$genome==best_genome,], aes(factor(sample), length_median)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Median TLEN [bp]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(length_median)),col="red")
+```
+-->
+---
+
+<!--
+## Mean mapping length
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df, aes(factor(genome), length_mean, fill = factor(genome))) +
+  geom_boxplot() +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Genome") +
+  scale_y_continuous("Mean TLEN [bp]")
+```
+
+
+## Mean mapping length (`r best_genome`)
+
+```{r, echo=FALSE, include=TRUE} 
+ggplot(df[df$genome==best_genome,], aes(factor(sample), length_mean)) +
+  geom_histogram(stat="identity", fill="#81BEF7")  +
+  #geom_jitter() +
+  theme_bw(base_size = 14) +
+  scale_fill_discrete(name="Genome") +
+  scale_x_discrete("Samples") +
+  scale_y_continuous("Mean TLEN [bp]") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_hline(aes(yintercept=median(length_mean)),col="red")
+```
+-->
+---
+
+## Data table
+```{r, echo=FALSE, include=TRUE, results = 'asis'} 
+kable(df)
+```
+
+<!-- cwd: `r getwd()` -->
+

@@ -1,0 +1,52 @@
+###############################################################################
+## This start options only have effect on host pc305!
+###############################################################################
+
+## rsync -av ~/git/htsqc/ /data/manke/repository/scripts/htsqc/htsqc_0.1.0/
+## rm -R /data/manke/repository/scripts/htsqc/htsqc_0.1.0/.idea/
+
+
+## ChIP-seq
+#-i /data/processing/kilpert/test/htsqc/data/ChIP-seq/K4_caudal_1
+#-o /data/processing/kilpert/test/htsqc/htsqc_ChIP-seq
+#-v
+#--fastq-downsample 100000
+##-g hg38,mm10
+
+## RNA-seq
+#-i /data/processing/kilpert/test/htsqc/data/RNA-seq/
+#-o /data/processing/kilpert/test/htsqc/RNA-seq
+#-v
+#--fastq-downsample 100000
+
+## A237_Trompouki_Trompouki; R1 only! => SE
+-i /data/processing/kilpert/test/htsqc/data/A237_Trompouki_Trompouki
+-o /data/processing/kilpert/test/htsqc/output/A237_Trompouki_Trompouki
+-v
+--non-random
+
+## A274_Akhtar_Lam; R1 and R2 => PE
+#-i /data/processing/kilpert/test/htsqc/data/A274_Akhtar_Lam_TEST_ONLY
+#-o /data/processing/kilpert/test/htsqc/output/A274_Akhtar_Lam_TEST_ONLY
+#-v
+
+
+## A125_Akhtar_Semplicio;PE
+#-i /data/processing/kilpert/test/htsqc/data/A125_Akhtar_Semplicio
+#-o /data/processing/kilpert/test/htsqc/output/A125_Akhtar_Semplicio
+#-v
+
+## Ausma
+#-i /data/manke/kilpert/datasets/Ausma
+#-o /data/processing/kilpert/test/htsqc/output/Ausma
+#-v
+#--fastq-downsample 100000
+#--seed 123
+#--non-random
+
+## Dm_GSE56013
+#-i /data/manke/kilpert/datasets/Dm_GSE56013
+#-o /data/processing/kilpert/test/htsqc/output/Dm_GSE56013
+#-v
+#--seed 123
+#--non-random
