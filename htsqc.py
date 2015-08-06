@@ -41,7 +41,7 @@ script_path = os.path.dirname(os.path.realpath(__file__)) + "/"
 python_path=sys.executable
 
 
-#### Development settins ######################################################
+#### Development settings ######################################################
 
 if socket.gethostname() == "pc305":
 
@@ -59,11 +59,6 @@ if socket.gethostname() == "pc305":
             print "Using start options:", " ".join(start_options)
             sys.argv = [sys.argv[0]] + start_options
 
-
-    if "--trim_galore" in sys.argv:
-        sys.argv2 = sys.argv
-        sys.argv2[sys.argv.index( '--trim_galore')+1] = "'" + sys.argv[sys.argv2.index( '--trim_galore')+1] + "'"   # just to output all trim galore option as one string
-        print " ".join(sys.argv2)   # output command line
     if "--featureCounts" in sys.argv:
         sys.argv2 = sys.argv
         sys.argv2[sys.argv.index( '--featureCounts')+1] = "'" + sys.argv[sys.argv2.index( '--featureCounts')+1] + "'"   # just to output all trim galore option as one string
@@ -133,6 +128,13 @@ if socket.gethostname().startswith("deep"):
     default_parallel = 6
     samtools_mem = 2
     samtools_threads = 2
+
+elif socket.gethostname().startswith("solserv"):
+    default_threads = 5
+    default_parallel = 5
+    samtools_mem = 2
+    samtools_threads = 2
+
 
 
 #### COMMAND LINE PARSING ##############################################################################################
@@ -349,7 +351,7 @@ def run_subprocess(cmd, cwd, td, shell=False, logfile=None, backcopy=True, verbo
                 shutil.move(os.path.join(td,f), cwd)
 
 
-def queue_worker(q, verbose=False):
+def queue_worker(q, verbose=False, time_sleep=0.1):
     """
     Worker executing jobs (command lines) sent to the queue.
     """
@@ -375,6 +377,7 @@ def queue_worker(q, verbose=False):
                 if not job.keep_temp:
                     shutil.rmtree(td)
         q.task_done()
+        time.sleep(time_sleep)
 
 
 
