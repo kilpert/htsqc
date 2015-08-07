@@ -130,8 +130,8 @@ if socket.gethostname().startswith("deep"):
     samtools_threads = 2
 
 elif socket.gethostname().startswith("solserv"):
-    default_threads = 5
-    default_parallel = 5
+    default_threads = 8
+    default_parallel = 1
     samtools_mem = 2
     samtools_threads = 2
 
@@ -351,7 +351,7 @@ def run_subprocess(cmd, cwd, td, shell=False, logfile=None, backcopy=True, verbo
                 shutil.move(os.path.join(td,f), cwd)
 
 
-def queue_worker(q, verbose=False, time_sleep=0.1):
+def queue_worker(q, verbose=False, rest=0.2):
     """
     Worker executing jobs (command lines) sent to the queue.
     """
@@ -372,13 +372,12 @@ def queue_worker(q, verbose=False, time_sleep=0.1):
                 return_code = run_subprocess(cmd, job.cwd, td, shell=job.shell, logfile=logfile, backcopy=job.backcopy, verbose=verbose, keep_temp=job.keep_temp)
                 if return_code:
                     is_error = True
+                time.sleep(rest)
         finally:
             if os.path.isdir(td):
                 if not job.keep_temp:
                     shutil.rmtree(td)
         q.task_done()
-        time.sleep(time_sleep)
-
 
 
 #### TOOLS #############################################################################################################
@@ -488,7 +487,6 @@ def run_fastqc(args, q, indir, analysis_name="FastQC"):
         for infile in infiles:
             jobs = ["{}fastqc --extract -o {} {}".format(fastqc_path, cwd, infile)]
             q.put(Qjob(jobs, cwd=cwd, logfile=logfile, backcopy=True))
-            time.sleep(0.1)
         q.join()
         if is_error:
             exit(is_error)
@@ -570,7 +568,6 @@ def run_hisat(args, q, indir, available_genomes):
                             ]
 
                     q.put(Qjob(jobs, cwd=cwd, logfile=logfile, shell=True, backcopy=True, keep_temp=False))
-                    time.sleep(0.1)
             ## SE
             else:
                 for infile in infiles:
@@ -602,7 +599,6 @@ def run_hisat(args, q, indir, available_genomes):
                             ]
 
                     q.put(Qjob(jobs, cwd=cwd, logfile=logfile, shell=True, backcopy=True, keep_temp=False))
-                    time.sleep(0.1)
             print
             q.join()
             if is_error:
