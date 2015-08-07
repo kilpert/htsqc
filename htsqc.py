@@ -439,7 +439,7 @@ def run_fastq_downsampling(args, q, indir, analysis_name="FASTQ_downsampling"):
                 else:
                     for infile in infiles:
                         bname = re.sub(".fastq.gz$","",os.path.basename(infile))
-                        jobs = ["bash {}htsqc/downsample_reservoir/downsample_reservoir_pe.sh {} {} {}".format(script_path,
+                        jobs = ["bash {}htsqc/downsample_reservoir/downsample_reservoir_se.sh {} {} {}".format(script_path,
                                     args.fastq_downsample,
                                     infile,
                                     os.path.join(cwd,bname+".fastq.gz")),]
