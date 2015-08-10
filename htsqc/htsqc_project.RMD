@@ -100,7 +100,7 @@ ggplot(pd, aes(factor(sample), spliced_perc)) +
   theme_bw(base_size = 14) +
   scale_fill_discrete(name="Genome") +
   scale_x_discrete("\nSamples") +
-  scale_y_continuous("Spliced reads [%]\n", limits=c(0, 30), breaks=seq(0,100,1)) +
+  scale_y_continuous("Spliced reads [%]\n", limits=c(0, 50), breaks=seq(0,100,5)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   geom_hline(aes(yintercept=median(spliced_perc)),col="red")
 
@@ -120,7 +120,7 @@ if (paired=="PE") {
     theme_bw(base_size = 14) +
     scale_fill_discrete(name="Genome") +
     scale_x_discrete("\nSamples") +
-    scale_y_continuous("Disconcordant pairs [%]\n", limits=c(0, 30), breaks=seq(0,100,1)) +
+    scale_y_continuous("Disconcordant pairs [%]\n", limits=c(0, 50), breaks=seq(0,100,5)) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     geom_hline(aes(yintercept=median(discon_perc)),col="red")
 }
@@ -145,7 +145,7 @@ if (paired=="PE") {
     theme_bw(base_size = 14) +
     scale_fill_discrete(name="Genome") +
     scale_x_discrete("\nSamples") +
-    scale_y_continuous("TLEN >= 1000 bp [%]\n", limits=c(0, 30), breaks=seq(0,100,1)) +
+    scale_y_continuous("TLEN >= 1000 bp [%]\n", limits=c(0, 50), breaks=seq(0,100,5)) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     geom_hline(aes(yintercept=median(tlen_1k_perc)),col="red")
 }
