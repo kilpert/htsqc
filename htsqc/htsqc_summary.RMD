@@ -1,0 +1,109 @@
+---
+title: "htsqc_summary"
+author: ""
+date: ""
+output: html_document
+---
+
+`r format(Sys.Date(), format="%D")`
+
+```{r, echo=FALSE}
+library(plyr)
+library(ggplot2)
+library(gtools)
+
+## reading blacklist file (excluding from analysis!!!)
+#blacklist <- scan("/data/manke/group/shiny/htsqc_summary/blacklist.txt", what="", sep="\n")
+#blacklist = mixedsort(unique(blacklist))
+
+#setwd("/data/manke/group/shiny/htsqc/.htsqc_summary")
+html_htsqc_dir = "http://galaxy.immunbio.mpg.de:3838/htsqc"
+tsv_dir = "/data/manke/group/shiny/htsqc/.tsv"
+
+tsv_list = lapply(Sys.glob(file.path(tsv_dir, "*.tsv") ), read.table)
+data = rbind.fill(tsv_list)
+data$project = gsub("[^-_a-zA-Z0-9]", "", data$project) 
+genomes = mixedsort(as.character(unique(data$genome)))
+
+## project_data = tsv_list[[1]]
+get_best_genome <- function(project_data){
+  mapping_rates = sapply(genomes, function(x) median(project_data[project_data$genome == x,]$mapped_perc))
+  mapped = data.frame(genome=genomes, mapped_perc=mapping_rates)
+  project_data$best_genome = as.character( mapped[order(-mapped$mapped_perc),][1,][[1]] )
+  return(project_data)
+}
+
+tsv_list = lapply(tsv_list, function(x) get_best_genome(x))
+data = rbind.fill(tsv_list)
+##sel = rbind.fill( lapply(genomes, function(x) subset(data, best_genome=="mm10" & genome=="mm10" ) ) )
+##unique(as.character(sel$project))
+##head(data)
+##tail(data)
+##sort(unique(data$project))
+
+## Excluding blacklist projects
+##data = data[!data$project %in% blacklist,]
+
+## Automatic filtering (get reference by criteria)
+data <- rbind.fill( lapply(genomes, function(x) subset(data, best_genome==x & genome==x ) ) )
+data$project = gsub("[^-_a-zA-Z0-9]", "", data$project) 
+
+## Reference setting: if >= 60% mapping rate
+filter_project <- function(project_data) {  
+  s = summary(project_data$mapped_perc)
+  if ( s["Median"] >= 70 & s["Min."] >= 50 ) {
+    return(project_data)
+  } 
+}
+  
+filtered = rbind.fill( lapply( lapply(unique(data$project), function(x) data[data$project==x,]), function(x) filter_project(x)) )
+```
+
+
+---
+
+## Reference criteria
+
+median mapping rate >=70%, minimum mapping rate >= 50%
+
+---
+
+Projects meeting criteria: `r length(unique(filtered$project))`
+
+<!--
+`r sort(unique(filtered$project))`
+-->
+
+```{r, echo=FALSE, results='asis'}
+for (html in sort(unique(filtered$project))) {
+  cat( sprintf("[%s](%s/%s.html)", html, html_htsqc_dir, html), "\n" )
+}
+
+#cat( "[A202_Sawarkar_Sawarkar](html_htsqc_dir, A202_Sawarkar_Sawarkar.html)" )
+```
+
+---
+
+<!--
+Genomes: `r genomes`
+-->
+
+## Mapping rate (reference projects)
+
+```{r, echo=FALSE}
+
+pd = filtered
+
+# pd = pd[order(pd$best_genome),]
+
+# ##pd$best_genome = factor(pd$best_genome, levels=sort(unique(pd$best_genome), decreasing=T))
+# pd$best_genome
+
+boxplot(pd$mapped_perc ~ pd$best_genome, 
+  ylab="Mapped reads [%]",
+  xlab="Samples",
+  col=seq(2,length(genomes)+1),
+  ylim=c(0, 100)) 
+```
+<!--
+-->
