@@ -86,7 +86,7 @@ samtools_export = "export PATH={}:$PATH &&".format(samtools_path)
 # ucsctools_dir_path = "/package/UCSCtools/"
 #hisat_path = "/package/hisat-0.1.5-beta/bin/hisat"
 hisat_path = "/package/hisat-0.1.6-beta/bin/"; hisat_ver = "HISAT-0.1.6-beta"
-R_libraries_export = "export R_LIBS_USER=/data/manke/repository/scripts/rna-seq-qc/R/x86_64-unknown-linux-gnu-library/3.2 &&"
+R_libraries_export = "export R_LIBS_USER=/data/manke/repository/scripts/R/rna-seq-qc_libraries/R/x86_64-redhat-linux-gnu-library/3.2 &&"
 # deseq2_ver = "DESeq2-1.8.1"
 pandoc_path = "/usr/bin/"; pandoc_ver = "pandoc 1.12.3.1"
 
