@@ -150,7 +150,8 @@ if ( file.exists(indir) ){
   }
 }  
 
-report = data.frame(row.names=names, project=basename(main_indir))
+report = data.frame(row.names=names)
+report$project=basename(main_indir)
 report$sample = sapply(rownames(report), function (x) unlist(strsplit(x, "___"))[[2]] )
 report$genome = sapply(rownames(report), function (x) unlist(strsplit(x, "___"))[[1]] )
 if (paired==T) { 
