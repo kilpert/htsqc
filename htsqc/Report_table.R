@@ -13,10 +13,10 @@ print("Generating project report...")
 args = commandArgs(TRUE)
 
 ## For debugging only!!! #######################################################
-# args = c('/data/processing/kilpert/test/htsqc/data/A237_Trompouki_Trompouki',
-#        '/data/processing/kilpert/test/htsqc/output/A237_Trompouki_Trompouki',
-#        '1000000',
-#        'False')
+# args = c('/data/jenuwein/group/kilpert/150714_MeRIP_Ausma/00_data',
+#        '/data/jenuwein/group/kilpert/150714_MeRIP_Ausma/03_htsqc',
+#        '0',
+#        'True')
 # setwd(args[2])
 ################################################################################
 main_indir = args[1]
@@ -24,13 +24,20 @@ main_outdir = args[2]
 total_reads = as.numeric(args[3])
 paired = as.logical(args[4]=="True")
 
+## Get the number of reads from a FASTQ file
+get_number_of_reads <- function(fastq_file){
+  cmd = sprintf("zcat %s | wc -l", fastq_file)
+  return( as.numeric( system(cmd, intern=T) ) / 4 )
+}
+
 ## BAM #########################################################################
 
 indir = file.path(main_outdir,"HISAT")
-if ( file.exists( indir ) ){
+if ( file.exists(indir) ){
   files <- list.files(indir, pattern="*.bam$", full.names=T)
   files
   
+  total_dict = list()
   names = c()
   total = c()
   mapped = c()
@@ -40,10 +47,26 @@ if ( file.exists( indir ) ){
   tlen_median = c()
   tlen_1k = c()
   for (file in files) {
-    # file = files[[15]]
+    ### file = files[[1]]
     name = gsub(".bam$","",basename(file))
     name
     names = c(names, name)
+    
+    bname = gsub("^[a-zA-Z0-9]*___", "", name)
+    
+    ## total number of reads in FASTQ file
+    ## if no downsampling
+    if (total_reads == 0){
+      ## if not in dictionary
+      if ( !exists(bname, where=total_dict) ) {
+        total_dict[bname] = get_number_of_reads( sprintf("%s/%s_R1.fastq.gz", main_indir, bname ) )
+      } 
+      num_total = as.numeric(total_dict[bname])
+      total = c(total, num_total)
+    } else {
+      ## if downsampling
+      total = c(total, total_reads)
+    }
     
     ##     scanBamFlag(isPaired = NA, isProperPair = NA, isUnmappedQuery = NA, 
     ##                 hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA,
@@ -123,12 +146,11 @@ if ( file.exists( indir ) ){
     
     ############################################################################
     
-    cat(name, num_mapped, num_lowqual, num_spliced, num_discon, num_tlen_1k, num_tlen_median, "\n")
+    cat(name, num_total, num_mapped, num_lowqual, num_spliced, num_discon, num_tlen_1k, num_tlen_median, "\n")
   }
 }  
 
-report = data.frame(row.names=names)
-report$project = basename(main_indir)
+report = data.frame(row.names=names, project=basename(main_indir))
 report$sample = sapply(rownames(report), function (x) unlist(strsplit(x, "___"))[[2]] )
 report$genome = sapply(rownames(report), function (x) unlist(strsplit(x, "___"))[[1]] )
 if (paired==T) { 
@@ -136,7 +158,7 @@ if (paired==T) {
 } else { 
   report$lib_type = "SE"
 }
-report$total = total_reads
+report$total = total
 report$total_perc = 100
 
 report$mapped = mapped
