@@ -13,9 +13,9 @@ print("Generating project report...")
 args = commandArgs(TRUE)
 
 ## For debugging only!!! #######################################################
-# args = c('/data/jenuwein/group/kilpert/150714_MeRIP_Ausma/00_data',
-#        '/data/jenuwein/group/kilpert/150714_MeRIP_Ausma/03_htsqc',
-#        '0',
+# args = c('/data/processing/kilpert/test/htsqc/output/roadmapBI_fastq',
+#        '/data/processing/kilpert/test/htsqc/output/roadmapBI_fastq',
+#        '1000000',
 #        'True')
 # setwd(args[2])
 ################################################################################
@@ -62,11 +62,11 @@ if ( file.exists(indir) ){
         total_dict[bname] = get_number_of_reads( sprintf("%s/%s_R1.fastq.gz", main_indir, bname ) )
       } 
       num_total = as.numeric(total_dict[bname])
-      total = c(total, num_total)
     } else {
       ## if downsampling
-      total = c(total, total_reads)
+      num_total = total_reads
     }
+    total = c(total, num_total)
     
     ##     scanBamFlag(isPaired = NA, isProperPair = NA, isUnmappedQuery = NA, 
     ##                 hasUnmappedMate = NA, isMinusStrand = NA, isMateMinusStrand = NA,
